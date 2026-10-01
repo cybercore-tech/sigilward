@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" data-theme="sigil-obsidian-seal">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SigilWard — seal your file state</title>
+  <meta name="description" content="SigilWard: a Rust file-integrity monitor. Baseline a set of paths, then detect drift — new, deleted, modified, or unreadable — the AIDE/Tripwire way.">
+  <meta name="theme-color" content="#09080f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,4 90,27 90,73 50,96 10,73 10,27' fill='%23ff147f'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root { --a1: var(--pink); --a2: var(--cyan); --a3: var(--acid); }
+    .sigil { position: relative; aspect-ratio: 1; width: min(100%, 31rem); margin-inline: auto; }
+    .sigil svg { width: 100%; height: 100%; overflow: visible; }
+    .ring { transform-origin: 200px 200px; }
+    .r1 { animation: spin 38s linear infinite; } .r2 { animation: spin 24s linear infinite reverse; } .r3 { animation: spin 60s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .core { filter: drop-shadow(0 0 18px var(--a1)); animation: breathe 4.2s ease-in-out infinite; transform-origin: 200px 200px; }
+    @keyframes breathe { 50% { transform: scale(1.04); filter: drop-shadow(0 0 34px var(--a1)); } }
+    .hashbar { position: absolute; left: 50%; bottom: -1.2rem; transform: translateX(-50%); width: 92%; padding: .55rem .8rem; background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); font: .74rem/1 var(--mono); color: var(--muted); letter-spacing: .08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hashbar b { color: var(--a3); font-weight: 400; }
+    .verdicts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+    .verdict { padding: 1.3rem; border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 85%, transparent); }
+    .verdict code { display: inline-block; margin-bottom: .7rem; font: 700 .95rem/1 var(--mono); }
+    .verdict p { margin: 0; color: var(--muted); font-size: .92rem; }
+    @media (max-width: 960px) { .verdicts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 620px) { .verdicts { grid-template-columns: 1fr; } }
+  </style>
+  <script>
+    window.SITE = {
+      defaultTheme: 'sigil-obsidian-seal',
+      mashups: [
+        { id: 'sigil-obsidian-seal', label: 'OBSIDIAN SEAL', base: 'dystopian-ward', accent: 'neosynth-plasma' },
+        { id: 'sigil-tripwire-dawn', label: 'TRIPWIRE DAWN', base: 'cyberdyne-steel', accent: 'synthwave-sunset' },
+        { id: 'sigil-hash-garden', label: 'HASH GARDEN', base: 'kanagawa', accent: 'cyberpunk-hacker' }
+      ]
+    };
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="https://cybercore-tech.github.io/" data-brand-phase="0" aria-label="Cybercore Tech home"><span class="brand-emblem">CC</span><span class="brand-name">CYBERCORE <b>/</b> SIGILWARD<small>SECURITY TOOLS</small></span></a>
+    <nav class="main-nav" aria-label="Primary"><a href="#verdicts">VERDICTS</a><a href="#how">HOW</a><a href="#setup">SETUP</a><a href="#themes">THEMES</a></nav>
+    <div class="theme-picker"><span class="theme-label">THEME</span><button id="themeButton" class="theme-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="themeMenu">LOADING THEMES…</button><div id="themeMenu" class="theme-menu" role="listbox" aria-label="Theme" hidden></div></div>
+  </header>
+
+  <main>
+    <section class="wrap hero">
+      <div>
+        <p class="eyebrow">File-integrity monitor · Rust · SHA-256</p>
+        <h1><span class="glitch" data-text="SIGIL">SIGIL</span><br><em>WARD</em></h1>
+        <p class="tagline">Seal your file state. Catch the moment the seal breaks.</p>
+        <p class="lede">A sigil is a mark that attests nothing has been tampered with. SigilWard baselines every watched file — hash, mode, owner, size — then tells you exactly <em>what</em> changed, not just <em>that</em> something did. Same category as AIDE and Tripwire; written in Rust.</p>
+        <div class="chips"><span class="chip"><b>◆</b> SHA-256</span><span class="chip"><b>◆</b> SYSTEMD TIMER</span><span class="chip"><b>◆</b> NO ROOT NEEDED*</span><span class="chip"><b>◆</b> MIT</span></div>
+        <div class="cta"><a class="btn" href="https://github.com/cybercore-tech/sigilward">VIEW SOURCE ↗</a><a class="btn ghost" href="#setup">INSTALL</a></div>
+      </div>
+      <div class="sigil reveal" aria-hidden="true">
+        <svg viewBox="0 0 400 400">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop style="stop-color:var(--a1)" offset="0"/><stop style="stop-color:var(--a2)" offset="1"/></linearGradient>
+            <path id="circ" d="M200,200 m-160,0 a160,160 0 1,1 320,0 a160,160 0 1,1 -320,0"/>
+          </defs>
+          <g class="ring r3"><circle style="stroke:var(--line)" cx="200" cy="200" r="186" fill="none" stroke-dasharray="2 10"/>
+            <text style="fill:var(--muted)" font-family="Share Tech Mono, monospace" font-size="11" letter-spacing="4"><textPath href="#circ">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 · BASELINE SEALED · </textPath></text></g>
+          <g class="ring r1"><polygon style="stroke:url(#g1)" points="200,52 328,126 328,274 200,348 72,274 72,126" fill="none" stroke-width="2"/>
+            <circle style="fill:var(--a1)" cx="200" cy="52" r="5"/><circle style="fill:var(--a2)" cx="328" cy="274" r="5"/><circle style="fill:var(--a3)" cx="72" cy="274" r="5"/></g>
+          <g class="ring r2"><polygon style="stroke:var(--a2)" points="200,96 290,148 290,252 200,304 110,252 110,148" fill="none" stroke-width="1.2" stroke-dasharray="14 6"/></g>
+          <g class="core">
+            <polygon style="fill:color-mix(in srgb, var(--a1) 22%, transparent);stroke:var(--a1)" points="200,140 252,170 252,230 200,260 148,230 148,170" stroke-width="2.5"/>
+            <path style="stroke:var(--white)" d="M200 166 L200 234 M176 182 L224 218 M224 182 L176 218" stroke-width="3" stroke-linecap="square"/>
+          </g>
+        </svg>
+        <div class="hashbar">sha256 <b id="hash">e3b0c44298fc1c149afbf4c8996fb924</b> · /etc/sudoers · sealed</div>
+      </div>
+    </section>
+
+    <section class="wrap section" id="verdicts">
+      <div class="section-head reveal"><div><p class="eyebrow">01 / Verdicts</p><h2>Four ways a seal<br><em>can break.</em></h2></div><p><code>sigilward check</code> walks every watched path, compares it to the sealed baseline, and reports each change separately — a <code>chmod</code> alone shows as a permissions change, never a false content change. Any drift exits non-zero, made for timers and alerting.</p></div>
+      <div class="verdicts">
+        <div class="verdict reveal"><code class="t-new">[NEW]</code><p>A file exists now that wasn't in the baseline.</p></div>
+        <div class="verdict reveal"><code class="t-del">[DELETED]</code><p>A baselined file is gone.</p></div>
+        <div class="verdict reveal"><code class="t-mod">[MODIFIED]</code><p>Content, permissions or ownership changed — each reported as its own reason.</p></div>
+        <div class="verdict reveal"><code class="t-unr">[UNREADABLE]</code><p>It exists but couldn't be read to verify. Never mistaken for a deletion — and never a silent pass.</p></div>
+      </div>
+      <div class="console reveal" style="margin-top:1.4rem">
+        <div class="console-head"><span>● ● ● &nbsp; blackbox / sigilward-check.service</span><strong>LIVE</strong></div>
+        <pre class="term" data-type><span><span class="t-prompt">❯</span> sigilward check</span><span class="t-dim">sigilward: walking 17 watch entries…</span><span><span class="t-new">[NEW]     </span>/etc/systemd/system/backdoor.service</span><span><span class="t-mod">[MODIFIED]</span> /etc/ssh/sshd_config <span class="t-dim">(content)</span></span><span><span class="t-mod">[MODIFIED]</span> /usr/local/bin/argus <span class="t-dim">(content, permissions)</span></span><span><span class="t-del">[DELETED] </span>/etc/sudoers.d/90-ops</span><span> </span><span class="t-pink">4 change(s) from baseline.</span><span class="t-dim">exit 1 — review, then `sigilward update` to re-seal</span></pre>
+      </div>
+    </section>
+
+    <section class="wrap section" id="how">
+      <div class="section-head reveal"><div><p class="eyebrow">02 / How it works</p><h2>Walk. Hash.<br><em>Seal. Compare.</em></h2></div><p>A point-in-time baseline/compare tool — the AIDE/Tripwire operating model. For change detection the moment it happens, pair it with <a href="https://github.com/cybercore-tech/argus">Argus</a>, which watches the same paths live against the same baseline.</p></div>
+      <div class="pipeline reveal">
+        <div class="step"><h3>WALK</h3><p>Every <code>[[watch]]</code> path from the TOML config, recursively. Symlinks are recorded by their own metadata — never followed out of the tree.</p></div>
+        <div class="step"><h3>HASH</h3><p>SHA-256 of content plus mode, uid, gid and size for each file.</p></div>
+        <div class="step"><h3>SEAL</h3><p><code>init</code> writes the trusted baseline JSON. <code>update</code> re-seals after you've reviewed a change.</p></div>
+        <div class="step"><h3>COMPARE</h3><p><code>check</code> diffs live state against the seal: new, deleted, modified, unreadable.</p></div>
+      </div>
+      <div class="grid g3" style="margin-top:1.1rem">
+        <div class="card c-pink reveal"><span class="num">◆ LEAST PRIVILEGE</span><h3>READ ALL, OWN NOTHING</h3><p>Run as your user with one capability, <code>CAP_DAC_READ_SEARCH</code>: it can read <code>/etc/shadow</code> and <code>/etc/sudoers</code> without being root, and the baseline stays yours.</p></div>
+        <div class="card c-cyan reveal"><span class="num">◆ HONEST REPORTS</span><h3>NO FALSE ALARMS</h3><p>A permission-denied file is <code>[UNREADABLE]</code>, not <code>[DELETED]</code> — the classic integrity-tool false alarm, fixed.</p></div>
+        <div class="card c-acid reveal"><span class="num">◆ CYBERCORE</span><h3>THEMED OUTPUT</h3><p>Reports render in the shared CYBERGRID palette, or plain with <code>--no-color</code> for logs and timers.</p></div>
+      </div>
+    </section>
+
+    <section class="wrap section" id="setup">
+      <div class="section-head reveal"><div><p class="eyebrow">03 / Setup</p><h2>Seal it<br><em>in minutes.</em></h2></div><p>Build from source, point it at the files that matter, seal, and let a daily systemd timer do the watching. Install the binary root-owned — a tool with read-everything powers must not be swappable by your user.</p></div>
+      <div class="grid g2">
+        <div class="reveal"><span class="label">BUILD + INSTALL</span>
+<pre class="code" data-copy><code>git clone https://github.com/cybercore-tech/sigilward
+cd sigilward && cargo build --release
+sudo install -m 755 target/release/sigilward /usr/local/bin/
+
+sigilward init     <span class="c"># walk + write the baseline</span>
+sigilward check    <span class="c"># compare, non-zero exit on drift</span>
+sigilward update   <span class="c"># re-seal after review</span></code></pre></div>
+        <div class="reveal"><span class="label">~/.config/sigilward/config.toml</span>
+<pre class="code" data-copy><code><span class="k">baseline_path</span> = <span class="s">"~/.local/state/sigilward/baseline.json"</span>
+
+[[<span class="k">watch</span>]]
+<span class="k">path</span> = <span class="s">"/etc/systemd/system"</span>
+
+[[<span class="k">watch</span>]]
+<span class="k">path</span> = <span class="s">"/etc/ssh"</span>
+
+[[<span class="k">watch</span>]]
+<span class="k">path</span> = <span class="s">"/etc/sudoers"</span>
+
+[[<span class="k">watch</span>]]   <span class="c"># absent today — [NEW] if it ever appears</span>
+<span class="k">path</span> = <span class="s">"/etc/ld.so.preload"</span></code></pre></div>
+        <div class="reveal"><span class="label">/etc/systemd/system/sigilward-check.service</span>
+<pre class="code" data-copy><code>[<span class="k">Service</span>]
+Type=oneshot
+User=<span class="n">youruser</span>
+ExecStart=/usr/local/bin/sigilward check --no-color
+AmbientCapabilities=<span class="s">CAP_DAC_READ_SEARCH</span>
+CapabilityBoundingSet=<span class="s">CAP_DAC_READ_SEARCH</span>
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=<span class="n">/home/youruser/.local/state/sigilward</span></code></pre></div>
+        <div class="reveal"><span class="label">/etc/systemd/system/sigilward-check.timer</span>
+<pre class="code" data-copy><code>[<span class="k">Timer</span>]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=15min
+
+[<span class="k">Install</span>]
+WantedBy=timers.target</code></pre>
+          <ul class="list" style="margin-top:1.2rem"><li><b>Known limit:</b> point-in-time, not continuous — use Argus for live watching.</li><li><b>Trust anchor:</b> the baseline is protected by file permissions only; keep it <code>600</code>.</li></ul></div>
+      </div>
+    </section>
+
+    <section class="wrap section" id="themes">
+      <div class="section-head reveal"><div><p class="eyebrow">04 / Theme matrix</p><h2>Pick your<br><em>signal.</em></h2></div><p>Every Cybercore palette from the shared schema, grouped by family — plus SigilWard's own <b>signature mashups</b>, blending one palette's surfaces with another's neons. Your choice follows you across Cybercore sites.</p></div>
+      <div class="theme-strip reveal"><div><span class="label">NOW RUNNING · <span id="themeCount">…</span></span><div class="now" data-active-theme>…</div><div class="recipe" id="themeRecipe"></div></div><div></div><div id="swatches"></div></div>
+    </section>
+
+    <section class="wrap section" style="padding-top:0">
+      <div class="card c-cyan related reveal"><div><span class="num">◆ COMPANION</span><h3>ARGUS — THE LIVE HALF</h3><p>Same watched paths, same baseline, change detection the instant it happens, with desktop alerts.</p></div><a class="btn" href="https://github.com/cybercore-tech/argus">ARGUS ↗</a></div>
+    </section>
+  </main>
+
+  <footer><span>CYBERCORE TECH / SIGILWARD / MIT / © <span id="year"></span></span><span><a href="https://cybercore-tech.github.io/">CYBERCORE-TECH.GITHUB.IO</a> · <a href="https://github.com/cybercore-tech/sigilward">SOURCE</a></span></footer>
+
+  <script>
+    // Hash ticker: cosmetic, mimics a live re-seal.
+    (() => { const el = document.getElementById('hash'); if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const hex = '0123456789abcdef'; setInterval(() => { el.textContent = Array.from({ length: 32 }, () => hex[Math.random() * 16 | 0]).join(''); }, 2200); })();
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>

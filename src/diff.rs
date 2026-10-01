@@ -4,6 +4,9 @@ use crate::baseline::{Baseline, FileRecord};
 pub enum Change {
     New(String),
     Deleted(String),
+    /// Exists but couldn't be read this run, so it can't be verified.
+    /// Never reported as `Deleted`.
+    Unreadable(String),
     Modified { path: String, content_changed: bool, mode_changed: bool, owner_changed: bool },
 }
 
@@ -14,6 +17,7 @@ pub fn diff(old: &Baseline, new: &Baseline) -> Vec<Change> {
 
     for (path, old_record) in &old.files {
         match new.files.get(path) {
+            None if new.unreadable.contains(path) => changes.push(Change::Unreadable(path.clone())),
             None => changes.push(Change::Deleted(path.clone())),
             Some(new_record) => {
                 if let Some(change) = compare(path, old_record, new_record) {
@@ -26,6 +30,14 @@ pub fn diff(old: &Baseline, new: &Baseline) -> Vec<Change> {
     for path in new.files.keys() {
         if !old.files.contains_key(path) {
             changes.push(Change::New(path.clone()));
+        }
+    }
+
+    // Unreadable now and not in the baseline either: still worth flagging,
+    // since nothing about it can be verified.
+    for path in &new.unreadable {
+        if !old.files.contains_key(path) {
+            changes.push(Change::Unreadable(path.clone()));
         }
     }
 
@@ -54,7 +66,7 @@ mod tests {
     }
 
     fn baseline(files: Vec<(&str, FileRecord)>) -> Baseline {
-        Baseline { files: files.into_iter().map(|(p, r)| (p.to_string(), r)).collect::<BTreeMap<_, _>>() }
+        Baseline { files: files.into_iter().map(|(p, r)| (p.to_string(), r)).collect::<BTreeMap<_, _>>(), ..Default::default() }
     }
 
     #[test]
@@ -73,6 +85,26 @@ mod tests {
         let changes = diff(&old, &new);
         assert_eq!(changes.len(), 1);
         assert!(matches!(&changes[0], Change::Deleted(p) if p == "/etc/foo"));
+    }
+
+    #[test]
+    fn unreadable_file_is_not_reported_as_deleted() {
+        let old = baseline(vec![("/etc/sudoers", record("abc", 0o440, 0, 0, 10))]);
+        let mut new = baseline(vec![]);
+        new.unreadable.insert("/etc/sudoers".to_string());
+        let changes = diff(&old, &new);
+        assert_eq!(changes.len(), 1);
+        assert!(matches!(&changes[0], Change::Unreadable(p) if p == "/etc/sudoers"));
+    }
+
+    #[test]
+    fn unreadable_file_absent_from_baseline_is_flagged() {
+        let old = baseline(vec![]);
+        let mut new = baseline(vec![]);
+        new.unreadable.insert("/etc/shadow".to_string());
+        let changes = diff(&old, &new);
+        assert_eq!(changes.len(), 1);
+        assert!(matches!(&changes[0], Change::Unreadable(p) if p == "/etc/shadow"));
     }
 
     #[test]

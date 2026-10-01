@@ -4,6 +4,7 @@ fn color_for(change: &Change) -> String {
     match change {
         Change::New(_) => cybercore::palette::cyan(),
         Change::Deleted(_) => cybercore::palette::red(),
+        Change::Unreadable(_) => cybercore::palette::orange(),
         Change::Modified { .. } => cybercore::palette::orange(),
     }
 }
@@ -23,6 +24,7 @@ pub fn render_report(changes: &[Change], color_on: bool) -> String {
         match change {
             Change::New(path) => out.push_str(&format!("{c}[NEW]     {path}{r}\n")),
             Change::Deleted(path) => out.push_str(&format!("{c}[DELETED] {path}{r}\n")),
+            Change::Unreadable(path) => out.push_str(&format!("{c}[UNREADABLE]{r} {path} (exists, but could not be read to verify)\n")),
             Change::Modified { path, content_changed, mode_changed, owner_changed } => {
                 let mut reasons = Vec::new();
                 if *content_changed {

@@ -7,7 +7,7 @@
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::os::unix::fs::MetadataExt;
 use std::path::Path;
 
@@ -27,6 +27,13 @@ pub struct Baseline {
     /// Absolute path -> record. BTreeMap for deterministic, sorted
     /// serialization (stable diffs in the baseline file across commits).
     pub files: BTreeMap<String, FileRecord>,
+    /// Paths that exist but couldn't be read during this walk (e.g.
+    /// permission denied). Kept separate from `files` so `diff` can report
+    /// "couldn't verify" instead of mistaking them for deletions. Omitted
+    /// from the on-disk baseline when empty, so existing baselines load
+    /// unchanged.
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    pub unreadable: BTreeSet<String>,
 }
 
 fn hash_file(path: &Path) -> std::io::Result<String> {
@@ -76,6 +83,11 @@ pub fn build(entries: &[WatchEntry]) -> Baseline {
                 Ok(e) => e,
                 Err(e) => {
                     eprintln!("sigilward: warning: walk error: {e}");
+                    if let Some(path) = e.path() {
+                        if path.exists() {
+                            baseline.unreadable.insert(path.to_string_lossy().into_owned());
+                        }
+                    }
                     continue;
                 }
             };
@@ -87,7 +99,15 @@ pub fn build(entries: &[WatchEntry]) -> Baseline {
                 Ok(record) => {
                     baseline.files.insert(path.to_string_lossy().into_owned(), record);
                 }
-                Err(e) => eprintln!("sigilward: warning: could not read {}: {}", path.display(), e),
+                Err(e) => {
+                    eprintln!("sigilward: warning: could not read {}: {}", path.display(), e);
+                    // Gone mid-walk is a genuine absence; anything else
+                    // (permission denied, I/O error) means it's still there
+                    // but unverified.
+                    if e.kind() != std::io::ErrorKind::NotFound {
+                        baseline.unreadable.insert(path.to_string_lossy().into_owned());
+                    }
+                }
             }
         }
     }
